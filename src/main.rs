@@ -6,11 +6,12 @@ fn main() {
     let args = env::args().collect::<Vec<String>>();
     let dir = if args.len() == 1 { "." } else { &args[1] };
 
-    let out = ls(dir);
-    println!("{}", out.unwrap());
+    let ls_result = ls(dir).unwrap();
+    let ls_formatted = format(&ls_result);
+    println!("{}", ls_formatted);
 }
 
-fn ls(dir: &str) -> Result<String, io::Error> {
+fn ls(dir: &str) -> Result<Vec<String>, io::Error> {
     let dir_entry: fs::ReadDir = fs::read_dir(dir)?;
     let mut files: Vec<String> = dir_entry
         .filter_map(|res| {
@@ -28,15 +29,19 @@ fn ls(dir: &str) -> Result<String, io::Error> {
 
     files.sort();
 
-    Ok(files.join("\t"))
+    Ok(files)
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
+fn format(ls_result: &Vec<String>) -> String {
+    ls_result.join("\t")
+}
 
-//     #[test]
-//     fn it_works() {
-//         assert_eq!(echo(vec!["", "foo", "bar"]), "foo bar\n");
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ls_gets_file_names() {
+        assert_eq!(ls("./testdata/test01").unwrap(), ["bar", "foo"]);
+    }
+}
