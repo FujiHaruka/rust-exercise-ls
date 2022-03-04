@@ -1,11 +1,21 @@
 use std::env;
 use std::fs;
 use std::io;
+use std::path::Path;
 
 fn main() {
     let args = env::args().collect::<Vec<String>>();
-    let dir = if args.len() == 1 { "." } else { &args[1] };
+    let dir_or_file = if args.len() == 1 { "." } else { &args[1] };
 
+    if is_file(dir_or_file) {
+        let path = Path::new(dir_or_file);
+        if let Some(file_name) = path.file_name() {
+            println!("{}", file_name.to_str().unwrap());
+            return;
+        }
+    }
+
+    let dir = dir_or_file;
     let ls_result = ls(dir);
     match ls_result {
         Ok(files) => {
@@ -37,6 +47,14 @@ fn ls(dir: &str) -> Result<Vec<String>, io::Error> {
     files.sort();
 
     Ok(files)
+}
+
+fn is_file(path: &str) -> bool {
+    if let Some(file) = fs::metadata(path).ok() {
+        file.is_file()
+    } else {
+        false
+    }
 }
 
 fn format(ls_result: &Vec<String>) -> String {
